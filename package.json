@@ -1,0 +1,100 @@
+{
+	"name": "dynamical-symbols",
+	"displayName": "Dynamical Symbols",
+	"description": "Dynamical create symbols in file like \"find\"",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.33.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:extension.dynamical-symbols.new",
+		"onCommand:extension.dynamical-symbols.add",
+		"onCommand:extension.dynamical-symbols.fix",
+		"onCommand:extension.dynamical-symbols.load",
+		"onCommand:extension.dynamical-symbols.save"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.dynamical-symbols.new",
+				"title": "Dynamical Symbols"
+			},
+			{
+				"command": "extension.dynamical-symbols.add",
+				"title": "Dynamical Symbols: Add"
+			},
+			{
+				"command": "extension.dynamical-symbols.fix",
+				"title": "Dynamical Symbols: Fix"
+			},
+			{
+				"command": "extension.dynamical-symbols.load",
+				"title": "Dynamical Symbols: Load"
+			},
+			{
+				"command": "extension.dynamical-symbols.save",
+				"title": "Dynamical Symbols: Save"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "Dynamical Symbols",
+			"properties": {
+				"dynamical-symbols.definitions": {
+					"type": "array",
+					"description": "Symbol definition Sets",
+					"items": {
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "string",
+								"description": "Identifer of definition set"
+							},
+							"symbols": {
+								"type": "array",
+								"description": "Symbol definition list",
+								"items":{
+									"type": "object",
+									"properties":{
+										"ignore_case": {
+											"type": "boolean",
+											"default": false
+										},
+										"regular_expression":{
+											"type": "boolean",
+											"default": true
+										},
+										"symbol" :{
+											"type": "string",
+											"description": "definition of symbol by string"
+										}
+									}
+								}
+							}
+						}
+					},
+					"default": []
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+	},
+	"devDependencies": {
+		"typescript": "^3.3.1",
+		"vscode": "^1.1.28",
+		"tslint": "^5.12.1",
+		"@types/node": "^10.12.21",
+		"@types/mocha": "^2.2.42"
+	},
+	"publisher": "Takashi"
+}
