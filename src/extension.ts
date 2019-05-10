@@ -14,7 +14,7 @@ class LocalStorage{
 
 export async function defineSymbols(storage: LocalStorage, context: vscode.ExtensionContext)
 {
-	var result = await vscode.window.showInputBox();
+	var result = await vscode.window.showInputBox({placeHolder:"Please enter new RegExp for Symbol."});
 
 	if(result !== undefined){
 		if(context.subscriptions.length > storage.cmd_count){
@@ -38,7 +38,7 @@ export async function defineSymbols(storage: LocalStorage, context: vscode.Exten
 
 export async function addSymbols(storage: LocalStorage, context: vscode.ExtensionContext)
 {
-	var result = await vscode.window.showInputBox();
+	var result = await vscode.window.showInputBox({placeHolder:"Please enter additional RegExp for Symbol"});
 
 	if(result !== undefined){
 		if(context.subscriptions.length > storage.cmd_count){
@@ -65,10 +65,10 @@ export async function fixSymbols(storage: LocalStorage, context: vscode.Extensio
 { 
 	if(storage.current.length === 0){return;}
 
-	var target = await vscode.window.showQuickPick(storage.current);
+	var target = await vscode.window.showQuickPick(storage.current,{placeHolder:"Please select target entry."});
 	if(target === undefined){return;}
 
-	var result = await vscode.window.showInputBox({value: target});
+	var result = await vscode.window.showInputBox({value: target, prompt:"Please Fix RegExp. Empty mean is Remove"});
 
 	if(result !== undefined){
 		if(context.subscriptions.length > storage.cmd_count){
@@ -76,17 +76,20 @@ export async function fixSymbols(storage: LocalStorage, context: vscode.Extensio
 			context.subscriptions.pop();
 		}
 
-		if(result.length !== 0){
+		const current  = storage.current;
+		if(result.length === 0){
+			current.splice(current.indexOf(target),1);
+		}else{
 			const current  = storage.current;
 			current[current.indexOf(target)] = result;
-
-			context.subscriptions.push(
-				vscode.languages.registerDocumentSymbolProvider(
-					[{scheme: 'file'},{scheme: 'untitled'}], new DynamicSymbolProvider(current)
-				)
-			);
 		}
-	}
+
+		context.subscriptions.push(
+			vscode.languages.registerDocumentSymbolProvider(
+				[{scheme: 'file'},{scheme: 'untitled'}], new DynamicSymbolProvider(current)
+			)
+		);
+}
 
 }
 
@@ -113,7 +116,7 @@ export async function loadSymbolSet(storage: LocalStorage, context: vscode.Exten
 {
 	const configs = vscode.workspace.getConfiguration('dynamical-symbols').get<SymbolSet[]>('definitions');
 	if(configs !== undefined && configs.length > 0){
-		var target = await vscode.window.showQuickPick(configs.map(config=>config.id));
+		var target = await vscode.window.showQuickPick(configs.map(config=>config.id),{placeHolder:"Please select RegExp Set."});
 
 		if(target !== undefined){
 			if(context.subscriptions.length > storage.cmd_count){
@@ -141,7 +144,7 @@ export async function saveSymbolSet(storage: LocalStorage, context: vscode.Exten
 {
 	if(storage.current.length === 0) {return;}
 
-	var result = await vscode.window.showInputBox();
+	var result = await vscode.window.showInputBox({placeHolder:"Please enter representation name for RegExp Set."});
 	if(result === undefined) {return;}
 
 	const configs = vscode.workspace.getConfiguration('dynamical-symbols').get<SymbolSet[]>('definitions');

@@ -2,7 +2,11 @@
 	"name": "dynamical-symbols",
 	"displayName": "Dynamical Symbols",
 	"description": "Dynamical create symbols in file like \"find\"",
-	"version": "0.0.1",
+	"version": "1.0.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/takashiK/dynamical-symbols.git"
+	  },
 	"engines": {
 		"vscode": "^1.33.0"
 	},
