@@ -13,20 +13,20 @@ export class DynamicSymbolProvider implements vscode.DocumentSymbolProvider {
         token: vscode.CancellationToken): vscode.SymbolInformation[] {
 
         const result: vscode.SymbolInformation[] = [];
-        const symbolRegexps : RegExp[] = this.symbolStrList.map(str => new RegExp(str));
-        
+        const symbolRegexps: RegExp[] = this.symbolStrList.map(str => new RegExp(str));
+
         for (let line = 0; line < document.lineCount; line++) {
             const { text } = document.lineAt(line);
 
-            symbolRegexps.forEach( regexp =>{
+            symbolRegexps.forEach(regexp => {
                 let reg = regexp.exec(text);
-                if(reg !== null){
+                if (reg !== null) {
                     result.push(
                         new vscode.SymbolInformation(
                             reg[0],
                             vscode.SymbolKind.String,
                             reg[0],
-                            new vscode.Location(document.uri, new vscode.Range(new vscode.Position(line,0),new vscode.Position(line,text.length-1)))
+                            new vscode.Location(document.uri, new vscode.Range(new vscode.Position(line, 0), new vscode.Position(line, text.length - 1)))
                         ));
                 }
             });
