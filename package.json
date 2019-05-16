@@ -2,7 +2,7 @@
 	"name": "dynamical-symbols",
 	"displayName": "Dynamical Symbols",
 	"description": "Dynamical create symbols in file like \"find\"",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/takashiK/dynamical-symbols.git"
@@ -100,5 +100,5 @@
 		"@types/node": "^10.12.21",
 		"@types/mocha": "^2.2.42"
 	},
-	"publisher": "Takashi"
+	"publisher": "takashiK"
 }

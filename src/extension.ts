@@ -12,6 +12,7 @@ export type LocalInstance = {
 };
 
 export type Subscription = {
+	label?: string;
 	dispose(): any;
 };
 
@@ -24,7 +25,9 @@ export async function defineSymbols(instance: LocalInstance, subscriptions: Subs
 			subscriptions.pop();
 		}
 
-		if (result.length !== 0) {
+		if (result.length === 0) {
+			instance.current = [];
+		}else{
 			const current = [result];
 			instance.current = current;
 
@@ -41,23 +44,21 @@ export async function defineSymbols(instance: LocalInstance, subscriptions: Subs
 export async function addSymbols(instance: LocalInstance, subscriptions: Subscription[]) {
 	var result = await instance.showInputBox({ placeHolder: "Please enter additional RegExp for Symbol" });
 
-	if (result !== undefined) {
+	if (result !== undefined && result.length > 0) {
 		if (subscriptions.length > instance.cmd_count) {
 			subscriptions[subscriptions.length - 1].dispose();
 			subscriptions.pop();
 		}
 
-		if (result.length !== 0) {
-			const current = instance.current;
-			current.push(result);
-			instance.current = current;
+		const current = instance.current;
+		current.push(result);
+		instance.current = current;
 
-			subscriptions.push(
-				instance.registerDocumentSymbolProvider(
-					[{ scheme: 'file' }, { scheme: 'untitled' }], new DynamicSymbolProvider(current)
-				)
-			);
-		}
+		subscriptions.push(
+			instance.registerDocumentSymbolProvider(
+				[{ scheme: 'file' }, { scheme: 'untitled' }], new DynamicSymbolProvider(current)
+			)
+		);
 	}
 
 }
@@ -80,15 +81,17 @@ export async function fixSymbols(instance: LocalInstance, subscriptions: Subscri
 		if (result.length === 0) {
 			current.splice(current.indexOf(target), 1);
 		} else {
-			const current = instance.current;
 			current[current.indexOf(target)] = result;
 		}
+		instance.current = current;
 
-		subscriptions.push(
-			instance.registerDocumentSymbolProvider(
-				[{ scheme: 'file' }, { scheme: 'untitled' }], new DynamicSymbolProvider(current)
-			)
-		);
+		if(current.length > 0){
+			subscriptions.push(
+				instance.registerDocumentSymbolProvider(
+					[{ scheme: 'file' }, { scheme: 'untitled' }], new DynamicSymbolProvider(current)
+				)
+			);
+		}
 	}
 
 }
@@ -112,12 +115,13 @@ export class SymbolSet {
 	}
 }
 
-export async function loadSymbolSet(instance: LocalInstance, subscriptions: Subscription[], config: vscode.WorkspaceConfiguration) {
+export async function loadSymbolSet(instance: LocalInstance, subscriptions: Subscription[], config?: vscode.WorkspaceConfiguration) {
+	if(config === undefined) {return;}
 	const symbolset_list = config.get<SymbolSet[]>('definitions');
 	if (symbolset_list !== undefined && symbolset_list.length > 0) {
 		var target = await instance.showQuickPick(symbolset_list.map(symbolset => symbolset.id), { placeHolder: "Please select RegExp Set." });
 
-		if (target !== undefined) {
+		if (target !== undefined && target.length > 0) {
 			if (subscriptions.length > instance.cmd_count) {
 				subscriptions[subscriptions.length - 1].dispose();
 				subscriptions.pop();
@@ -139,18 +143,26 @@ export async function loadSymbolSet(instance: LocalInstance, subscriptions: Subs
 	}
 }
 
-export async function saveSymbolSet(instance: LocalInstance, subscriptions: Subscription[], config: vscode.WorkspaceConfiguration) {
+export async function saveSymbolSet(instance: LocalInstance, subscriptions: Subscription[], config?: vscode.WorkspaceConfiguration) {
+	if(config === undefined) {return;}
 	if (instance.current.length === 0) { return; }
 
 	var result = await instance.showInputBox({ placeHolder: "Please enter representation name for RegExp Set." });
-	if (result === undefined) { return; }
+	if (result === undefined || result.length === 0) { return; }
 
 	const symbolset_list = config.get<SymbolSet[]>('definitions');
 	if (symbolset_list !== undefined) {
-		let symbolset = new SymbolSet;
-		symbolset.id = result;
-		symbolset.symbols = instance.current.map(current => new SymbolDefine(false, true, current));
-		symbolset_list.push(symbolset);
+		let symbolset = symbolset_list.find(set=>set.id === result);
+		if(symbolset !== undefined){
+			//update curren entry
+			symbolset.id = result;
+			symbolset.symbols = instance.current.map(current => new SymbolDefine(false, true, current));
+		}else{
+			symbolset = new SymbolSet;
+			symbolset.id = result;
+			symbolset.symbols = instance.current.map(current => new SymbolDefine(false, true, current));
+			symbolset_list.push(symbolset);
+		}
 		config.update("definitions", symbolset_list, vscode.ConfigurationTarget.Global);
 	}
 
@@ -166,8 +178,6 @@ export function activate(context: vscode.ExtensionContext) {
 		showQuickPick : vscode.window.showQuickPick,
 		registerDocumentSymbolProvider : vscode.languages.registerDocumentSymbolProvider,
 	};
-
-
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
