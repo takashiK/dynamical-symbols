@@ -39,7 +39,3 @@ Current version is not support below
 - Fix: action for null string.
 - Fix: range definition of symbols. file works with "Follow cursor".
 
-### 1.0.0
-
-Initial release of Dynamical Symbols.
-

@@ -9,12 +9,20 @@ export type LocalInstance = {
 	showInputBox: (options?: vscode.InputBoxOptions, token?: vscode.CancellationToken) => Thenable<string | undefined>;
 	showQuickPick: (items: string[] | Thenable<string[]>, options?: vscode.QuickPickOptions, token?: vscode.CancellationToken) => Thenable<string | undefined>;
 	registerDocumentSymbolProvider: (selector: vscode.DocumentSelector, provider: vscode.DocumentSymbolProvider, metaData?: vscode.DocumentSymbolProviderMetadata) => vscode.Disposable;
+	buttons: vscode.QuickInputButton[];
 };
 
 export type Subscription = {
 	label?: string;
 	dispose(): any;
 };
+
+export async function showSymbolDefBox(instance: LocalInstance) {
+	let input = vscode.window.createInputBox();
+	input.buttons = instance.buttons;
+	input.show();
+
+}
 
 export async function defineSymbols(instance: LocalInstance, subscriptions: Subscription[]) {
 	var result = await instance.showInputBox({ placeHolder: "Please enter new RegExp for Symbol." });
@@ -171,12 +179,27 @@ export async function saveSymbolSet(instance: LocalInstance, subscriptions: Subs
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	class MyButton implements vscode.QuickInputButton {
+		constructor(public iconPath: { light: vscode.Uri; dark: vscode.Uri; }, public tooltip: string) { }
+	}
+
+	let regexpButton = new MyButton({
+			dark: vscode.Uri.file(context.asAbsolutePath('resources/dark/regex.svg')),
+			light: vscode.Uri.file(context.asAbsolutePath('resources/light/regex.svg')),
+		}, 'Create Resource Group');
+
+	let caseButton = new MyButton({
+		dark: vscode.Uri.file(context.asAbsolutePath('resources/dark/case-sensitive.svg')),
+		light: vscode.Uri.file(context.asAbsolutePath('resources/light/case-sensitive.svg')),
+	}, 'Create Resource Group');
+
 	var instance : LocalInstance = {
 		cmd_count : 0,
 		current   : [],
 		showInputBox : vscode.window.showInputBox,
 		showQuickPick : vscode.window.showQuickPick,
 		registerDocumentSymbolProvider : vscode.languages.registerDocumentSymbolProvider,
+		buttons : [caseButton,regexpButton],
 	};
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
@@ -188,7 +211,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// The commandId parameter must match the command field in package.json
 	context.subscriptions.push(vscode.commands.registerCommand('extension.dynamical-symbols.new', () => {
 		// The code you place here will be executed every time your command is executed
-		defineSymbols(instance, context.subscriptions);
+		showSymbolDefBox(instance);
+//		defineSymbols(instance, context.subscriptions);
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.dynamical-symbols.add', () => {
